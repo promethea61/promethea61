@@ -251,9 +251,15 @@
   }
 
   function avatarEl(g, size, initials) {
-    const c=gradColor(g), dim=size==='sm'?28:38;
-    return `<div class="${size==='sm'?'cm-reply-avatar':'cm-avatar'}" style="background:linear-gradient(135deg,${c},${c}88);width:${dim}px;height:${dim}px;">${initials}</div>`;
+  const dim = size==='sm' ? 28 : 38;
+  if (g === 'logo') {
+    return `<div class="${size==='sm'?'cm-reply-avatar':'cm-avatar'}" style="background:#000;width:${dim}px;height:${dim}px;padding:2px;overflow:hidden;">
+      <img src="logoprome.jpeg" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none'">
+    </div>`;
   }
+  const c=gradColor(g), dim2=dim;
+  return `<div class="${size==='sm'?'cm-reply-avatar':'cm-avatar'}" style="background:linear-gradient(135deg,${c},${c}88);width:${dim2}px;height:${dim2}px;">${initials}</div>`;
+}
 
   function nameInitial(n) { return n?n[0].toUpperCase():'?'; }
   function totalCount() { return comments.reduce((a,c)=>a+1+(c.replies||[]).length,0); }
@@ -330,7 +336,8 @@
     const text=document.getElementById('cmTextInput').value.trim();
     if(!name||!text||text.length>500) return;
     const AVATARS=['g1','g2','g3','g4','g5','g6','g7','g8','g9','g10','g11','g12'];
-    const randG=AVATARS[Math.floor(Math.random()*AVATARS.length)];
+    const isAdmin = name.toLowerCase() === 'promethea';
+    const randG = isAdmin ? 'logo' : AVATARS[Math.floor(Math.random()*AVATARS.length)];
     const sendBtn=document.getElementById('cmSendBtn');
     sendBtn.disabled=true; sendBtn.querySelector('span').textContent='Menyimpan...';
     const inserted=await insertComment(name,randG,text,replyingTo);
