@@ -7,6 +7,20 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
  <link rel="icon" type="image/png" href="logoprome.jpeg">
 <style>
+  
+  /* WELCOME POPUP */
+.welcome-modal{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);align-items:center;justify-content:center;}
+.welcome-modal.open{display:flex;}
+.welcome-box{background:var(--bg-card);border-radius:20px;padding:36px 32px;width:90%;max-width:420px;text-align:center;animation:popIn .4s cubic-bezier(.175,.885,.32,1.275);}
+@keyframes popIn{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+.welcome-box h2{font-size:22px;font-weight:700;margin-bottom:8px;}
+.welcome-box p{color:var(--text-2);font-size:14px;line-height:1.7;margin-bottom:24px;}
+.welcome-img{width:100%;border-radius:12px;margin-bottom:20px;object-fit:cover;max-height:200px;}
+.welcome-btn{width:100%;padding:14px;border-radius:10px;background:var(--green);border:none;color:#000;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;}
+.welcome-btn:hover{background:var(--green-b);}
+.welcome-skip{margin-top:12px;font-size:12px;color:var(--text-3);cursor:pointer;}
+.welcome-skip:hover{color:var(--text-2);}
+
   :root {
     --green:#1DB954; --green-b:#1ed760;
     --bg:#0d0d0d; --bg-el:#161616; --bg-card:#1e1e1e; --bg-hl:#282828;
@@ -525,6 +539,8 @@
     .lb-prev{left:-36px}.lb-next{right:-36px}
     .members-grid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr))}
   }
+
+
 </style>
 </head>
 <body>
@@ -552,6 +568,17 @@
 </script>
 
 <div class="toast" id="toast"></div>
+
+<!-- WELCOME POPUP -->
+<div class="welcome-modal" id="welcomeModal">
+  <div class="welcome-box">
+    <div style="font-size:56px;margin-bottom:12px">📸</div>
+    <h2>Hai, Promethea! 👋</h2>
+    <p>Punya foto atau video kenangan<br>bareng teman-teman?<br><br><strong style="color:var(--green)">Upload momen kamu di sini!</strong><br>Abadikan cerita kita bersama.</p>
+    <button class="welcome-btn"onclick="closeWelcome();openUploadForm()">📤 Upload Momen Sekarang</button>
+    <div class="welcome-skip" onclick="closeWelcome()">Nanti saja →</div>
+  </div>
+</div>
 
 <!-- LIGHTBOX (for members only) -->
 <div class="lightbox" id="lightbox" onclick="lbBgClick(event)">
@@ -648,6 +675,9 @@
     </button>
   </nav>
   <div class="divider"></div>
+  <div style="font-size:10px;color:var(--text-3);text-align:right;padding:0 12px;margin-top:-6px">
+  Upload momen kamu disini!
+</div>
 </aside>
 
 <!-- MAIN -->
@@ -1193,6 +1223,13 @@ document.addEventListener('keydown',e=>{
 // ============================================================
 // INIT
 // ============================================================
+if (!localStorage.getItem('sawUploadHint')) {
+  setTimeout(() => {
+    toast('📸 Klik + di Library untuk upload momen baru!');
+    localStorage.setItem('sawUploadHint', '1');
+  }, 2000);
+}
+
 filteredTracks=[...tracks];
 renderTracks(); renderMemories(); renderMembers();
 
@@ -1205,6 +1242,21 @@ _thumb.className='p-thumb '+_t0.g;
 _thumb.innerHTML='<img src="'+_t0.img+'" alt="'+_t0.name+'" onerror="this.style.display=\'none\'">';
 document.getElementById('timeDur').textContent=_t0.dur;
 updateHeart(); renderTracks();
+
+// WELCOME POPUP
+function closeWelcome(){document.getElementById('welcomeModal').classList.remove('open');}
+if(!localStorage.getItem('seenWelcome')){
+  setTimeout(()=>{
+    document.getElementById('welcomeModal').classList.add('open');
+    localStorage.setItem('seenWelcome','1');
+  }, 1000);
+}
+
+function closeWelcome(){document.getElementById('welcomeModal').classList.remove('open');}
+setTimeout(()=>{
+  document.getElementById('welcomeModal').classList.add('open');
+}, 1000);
+
 </script>
 
 
