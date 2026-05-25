@@ -184,9 +184,8 @@
           imgWrap.appendChild(vid);
           card.addEventListener('mouseenter', () => {
             vid.load();
-            vid.muted = false;
             const p = vid.play();
-            if (p) p.catch(() => { vid.muted = true; vid.play().catch(() => {}); });
+            if (p) p.catch(() => { vid.play().catch(() => {}); });
           });
           card.addEventListener('mouseleave', () => { vid.pause(); vid.currentTime = 0; });
         }

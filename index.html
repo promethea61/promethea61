@@ -1204,7 +1204,8 @@ function toast(msg){const el=document.getElementById('toast');el.textContent=msg
 
 // KEYBOARD
 document.addEventListener('keydown',e=>{
-  if(e.target.tagName==='INPUT')return;
+  // SESUDAH
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
   const mv=document.getElementById('memoryViewer').classList.contains('open');
   const lb=document.getElementById('lightbox').classList.contains('open');
   if(e.key===' '){e.preventDefault();mv?mvTogglePlay():togglePlay();}
@@ -1265,6 +1266,7 @@ setTimeout(()=>{
 <script src="upgrade_promethea.js"></script>
 <script src="upload-cloudinary.js"></script>
 <script src="fix_kb_viewer.js"></script>
+<script src="comments_promethea.js"></script>
 
 
 </body>
