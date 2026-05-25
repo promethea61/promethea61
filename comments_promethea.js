@@ -92,6 +92,7 @@
     .cm-count{background:rgba(29,185,84,.15);color:#1DB954;border:1px solid rgba(29,185,84,.3);border-radius:20px;padding:3px 12px;font-size:13px;font-weight:700}
     .cm-online-badge{display:flex;align-items:center;gap:5px;font-size:12px;color:#1DB954;font-weight:600}
     .cm-online-dot{width:7px;height:7px;border-radius:50%;background:#1DB954;animation:cmPulse 2s ease-in-out infinite}
+    .cm-verified{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:#1DB954;border-radius:50%;font-size:9px;color:#000;font-weight:900;flex-shrink:0;box-shadow:0 0 0 2px rgba(29,185,84,.25);}
     @keyframes cmPulse{0%,100%{opacity:1}50%{opacity:.35}}
     .cm-sort{display:flex;gap:6px}
     .cm-sort-btn{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(255,255,255,.12);background:none;color:var(--text-2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
@@ -267,33 +268,35 @@
   function escAttr(s) { return String(s).replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
 
   function renderComments() {
-    const list=document.getElementById('cmList'), countEl=document.getElementById('cmCount');
-    if (!list) return;
-    if (isLoading) { list.innerHTML='<div class="cm-loading"><div class="cm-loading-spinner"></div><div>Memuat komentar...</div></div>'; return; }
-    const total=totalCount();
-    if (countEl) countEl.textContent=total;
-    if (!comments.length) { list.innerHTML='<div class="cm-empty"><div class="cm-empty-icon">💬</div><p>Belum ada komentar.<br>Jadilah yang pertama!</p></div>'; return; }
-    const sorted=[...comments].sort((a,b)=>cmSortMode==='top'?b.likes-a.likes:b.ts-a.ts);
-    let html='';
-    sorted.forEach((c,i)=>{
-      const isNew=(Date.now()-c.ts)<1000*60*5;
-      html+=`<div class="cm-card">${avatarEl(c.avatar,'lg',nameInitial(c.author))}<div class="cm-body"><div class="cm-meta"><span class="cm-author">${escHtml(c.author)}</span>${isNew?'<span class="cm-badge">Baru</span>':''}<span class="cm-time">${timeAgo(c.ts)}</span></div><div class="cm-text">${escHtml(c.text)}</div><div class="cm-actions-row"><button class="cm-like-btn ${c.liked?'liked':''}" onclick="cmLike(${c.id})"><span class="cm-heart">${c.liked?'♥':'♡'}</span><span>${c.likes}</span></button><button class="cm-reply-btn" onclick="startReply(${c.id},'${escAttr(c.author)}')">↩ Balas</button></div>${renderReplies(c)}</div></div>`;
-      if (i===0&&cmSortMode==='new'&&total>5) html+='<div class="cm-divider">sebelumnya</div>';
-    });
-    list.innerHTML=html;
-  }
+  const list=document.getElementById('cmList'), countEl=document.getElementById('cmCount');
+  if (!list) return;
+  if (isLoading) { list.innerHTML='<div class="cm-loading"><div class="cm-loading-spinner"></div><div>Memuat komentar...</div></div>'; return; }
+  const total=totalCount();
+  if (countEl) countEl.textContent=total;
+  if (!comments.length) { list.innerHTML='<div class="cm-empty"><div class="cm-empty-icon">💬</div><p>Belum ada komentar.<br>Jadilah yang pertama!</p></div>'; return; }
+  const sorted=[...comments].sort((a,b)=>cmSortMode==='top'?b.likes-a.likes:b.ts-a.ts);
+  let html='';
+  sorted.forEach((c,i)=>{
+    const isNew=(Date.now()-c.ts)<1000*60*5;
+    const isAdmin=c.author.toLowerCase()==='promethea';
+    html+=`<div class="cm-card">${avatarEl(c.avatar,'lg',nameInitial(c.author))}<div class="cm-body"><div class="cm-meta"><span class="cm-author">${escHtml(c.author)}</span>${isAdmin?'<span class="cm-verified" title="Admin Promethea">✓</span>':''}${isNew?'<span class="cm-badge">Baru</span>':''}<span class="cm-time">${timeAgo(c.ts)}</span></div><div class="cm-text">${escHtml(c.text)}</div><div class="cm-actions-row"><button class="cm-like-btn ${c.liked?'liked':''}" onclick="cmLike(${c.id})"><span class="cm-heart">${c.liked?'♥':'♡'}</span><span>${c.likes}</span></button><button class="cm-reply-btn" onclick="startReply(${c.id},'${escAttr(c.author)}')">↩ Balas</button></div>${renderReplies(c)}</div></div>`;
+    if (i===0&&cmSortMode==='new'&&total>5) html+='<div class="cm-divider">sebelumnya</div>';
+  });
+  list.innerHTML=html;
+}
 
-  function renderReplies(c) {
-    if (!c.replies||!c.replies.length) return '';
-    const show=c._showReplies||c.replies.length<=2;
-    let html='<div class="cm-replies-wrap">';
-    if (show) c.replies.forEach(r=>{
-      html+=`<div class="cm-reply-card">${avatarEl(r.avatar,'sm',nameInitial(r.author))}<div class="cm-body"><div class="cm-meta"><span class="cm-author" style="font-size:12px">${escHtml(r.author)}</span><span class="cm-time">${timeAgo(r.ts)}</span></div><div class="cm-text" style="font-size:13px">${escHtml(r.text)}</div><div class="cm-actions-row"><button class="cm-like-btn ${r.liked?'liked':''}" onclick="cmLikeReply(${c.id},${r.id})" style="font-size:12px"><span class="cm-heart">${r.liked?'♥':'♡'}</span><span>${r.likes}</span></button></div></div></div>`;
-    });
-    if (!show) html+=`<button class="cm-show-replies" onclick="cmToggleReplies(${c.id})">▾ Lihat ${c.replies.length} balasan</button>`;
-    else if (c.replies.length>2) html+=`<button class="cm-show-replies" onclick="cmToggleReplies(${c.id})">▴ Sembunyikan</button>`;
-    return html+'</div>';
-  }
+function renderReplies(c) {
+  if (!c.replies||!c.replies.length) return '';
+  const show=c._showReplies||c.replies.length<=2;
+  let html='<div class="cm-replies-wrap">';
+  if (show) c.replies.forEach(r=>{
+    const isAdminReply=r.author.toLowerCase()==='promethea';
+    html+=`<div class="cm-reply-card">${avatarEl(r.avatar,'sm',nameInitial(r.author))}<div class="cm-body"><div class="cm-meta"><span class="cm-author" style="font-size:12px">${escHtml(r.author)}</span>${isAdminReply?'<span class="cm-verified" title="Admin Promethea">✓</span>':''}<span class="cm-time">${timeAgo(r.ts)}</span></div><div class="cm-text" style="font-size:13px">${escHtml(r.text)}</div><div class="cm-actions-row"><button class="cm-like-btn ${r.liked?'liked':''}" onclick="cmLikeReply(${c.id},${r.id})" style="font-size:12px"><span class="cm-heart">${r.liked?'♥':'♡'}</span><span>${r.likes}</span></button></div></div></div>`;
+  });
+  if (!show) html+=`<button class="cm-show-replies" onclick="cmToggleReplies(${c.id})">▾ Lihat ${c.replies.length} balasan</button>`;
+  else if (c.replies.length>2) html+=`<button class="cm-show-replies" onclick="cmToggleReplies(${c.id})">▴ Sembunyikan</button>`;
+  return html+'</div>';
+}
 
   window.cmLike = async function(id) {
     const c=comments.find(x=>x.id===id); if(!c) return;
