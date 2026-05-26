@@ -87,7 +87,7 @@ const memories = [
      hashtags: ["#ospek", "#promethea", "#2021"],
      imgs: [
        "https://res.cloudinary.com/dm9qunbji/image/upload/v1779689873/DSC02758_w818iu.jpg",
-        "IMG_1255.MOV",
+        "IMG_1255.MP4",
        "https://res.cloudinary.com/dm9qunbji/image/upload/v1779689871/DSC02718_xli2ql.jpg",
        "https://res.cloudinary.com/dm9qunbji/image/upload/v1779689881/DSC02665_jg53we.jpg",
        "https://res.cloudinary.com/dm9qunbji/image/upload/v1779689882/DSC02669_eqdssq.jpg",
