@@ -16,7 +16,7 @@
       position: absolute;
       top: 0; left: 0; right: 0;
       height: 450px;
-      background-image: url('DSC09814.JPG');
+      background-image: url('DSC09814.jpg');
       background-size: cover;
       background-position: center 110%;
       background-repeat: no-repeat;

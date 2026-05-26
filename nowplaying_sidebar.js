@@ -1,8 +1,11 @@
 // ============================================================
-// PROMETHEA — Now Playing Sidebar (foto besar, no controls)
+// PROMETHEA — Now Playing Sidebar (desktop only)
 // ============================================================
 (function () {
   'use strict';
+
+  // Mobile: skip semua, biarkan tampilan awal
+  if (window.innerWidth <= 768) return;
 
   // Sembunyikan Song Canvas lama
   const oldCanvas = document.getElementById('songCanvas');
@@ -10,15 +13,12 @@
 
   const style = document.createElement('style');
   style.textContent = `
-    /* DESKTOP ONLY — mobile tidak pakai sidebar */
-    @media(min-width:769px) {
-      body {
-        grid-template-columns: var(--sidebar) 1fr var(--np-width, 0px) !important;
-        grid-template-areas: "sidebar main np" "player player player" !important;
-        transition: grid-template-columns 0.35s cubic-bezier(0.23,1,0.32,1);
-      }
-      body.np-open { --np-width: 280px; }
+    body {
+      grid-template-columns: var(--sidebar) 1fr var(--np-width, 0px) !important;
+      grid-template-areas: "sidebar main np" "player player player" !important;
+      transition: grid-template-columns 0.35s cubic-bezier(0.23,1,0.32,1);
     }
+    body.np-open { --np-width: 280px; }
 
     #npSidebar {
       grid-area: np;
@@ -32,34 +32,7 @@
       transition: width 0.35s cubic-bezier(0.23,1,0.32,1), opacity 0.35s ease;
       z-index: 10;
     }
-
-    @media(min-width:769px) {
-      body.np-open #npSidebar { width: 280px; opacity: 1; }
-    }
-
-    /* MOBILE: sidebar jadi drawer dari kanan, overlay */
-    @media(max-width:768px) {
-      #npSidebar {
-        position: fixed !important;
-        top: 60px; right: 0;
-        bottom: 90px;
-        width: 0 !important;
-        z-index: 50;
-        transition: width 0.35s cubic-bezier(0.23,1,0.32,1), opacity 0.35s ease;
-      }
-      body.np-open #npSidebar {
-        width: 280px !important;
-        opacity: 1;
-      }
-      /* Overlay gelap di belakang drawer */
-      body.np-open::before {
-        content: '';
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,.5);
-        z-index: 49;
-      }
-    }
+    body.np-open #npSidebar { width: 280px; opacity: 1; }
 
     #npToggleBtn {
       background: none; border: none; color: var(--text-2);
@@ -70,39 +43,24 @@
     #npToggleBtn:hover { color: var(--text); }
     #npToggleBtn.active { color: var(--green); }
 
-    /* Cover foto */
     #npCoverWrap {
-      position: relative;
-      width: 100%;
-      height: 340px;
-      background: #111;
-      overflow: hidden;
-      flex-shrink: 0;
+      position: relative; width: 100%; height: 340px;
+      background: #111; overflow: hidden; flex-shrink: 0;
     }
     .np-cover-img {
-      position: absolute;
-      inset: 0; width: 100%; height: 100%;
-      object-fit: cover;
-      opacity: 0;
-      transition: opacity 0.6s ease;
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; opacity: 0; transition: opacity 0.6s ease;
     }
     .np-cover-img.active { opacity: 1; }
     #npCoverWrap::after {
-      content: '';
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 55%;
-      background: linear-gradient(to top, #000 0%, transparent 100%);
-      pointer-events: none;
-      z-index: 2;
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+      height: 55%; background: linear-gradient(to top, #000 0%, transparent 100%);
+      pointer-events: none; z-index: 2;
     }
 
     #npProgressBars {
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      display: flex; gap: 3px;
-      padding: 10px 10px 0;
-      z-index: 3;
+      position: absolute; top: 0; left: 0; right: 0;
+      display: flex; gap: 3px; padding: 10px 10px 0; z-index: 3;
     }
     .np-pb { flex: 1; height: 2px; background: rgba(255,255,255,.2); border-radius: 1px; overflow: hidden; }
     .np-pb-fill { height: 100%; background: #fff; border-radius: 1px; width: 0%; }
@@ -126,49 +84,27 @@
     .np-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,.3); transition: all .3s; flex-shrink: 0; }
     .np-dot.on { background: #fff; transform: scale(1.35); }
 
-    #npInfo {
-      padding: 14px 16px 10px; flex-shrink: 0;
-      border-bottom: 1px solid #1a1a1a;
-    }
-    #npSongName {
-      font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 4px;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
+    #npInfo { padding: 14px 16px 10px; flex-shrink: 0; border-bottom: 1px solid #1a1a1a; }
+    #npSongName { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     #npAlbumName { font-size: 13px; color: var(--text-2); display: flex; align-items: center; gap: 6px; }
-    .np-green-dot {
-      width: 7px; height: 7px; border-radius: 50%; background: var(--green);
-      animation: npPulse 1.8s ease-in-out infinite; flex-shrink: 0;
-    }
+    .np-green-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: npPulse 1.8s ease-in-out infinite; flex-shrink: 0; }
     @keyframes npPulse { 0%,100%{opacity:1}50%{opacity:.35} }
 
     #npQueue { flex: 1; overflow-y: auto; padding-bottom: 16px; }
     #npQueue::-webkit-scrollbar { width: 3px; }
     #npQueue::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
-    .np-queue-label {
-      font-size: 11px; font-weight: 700; color: var(--text-3);
-      text-transform: uppercase; letter-spacing: 1px; padding: 12px 16px 8px;
-    }
-    .np-queue-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 8px 16px; cursor: pointer; border-radius: 4px; transition: background .12s;
-    }
+    .np-queue-label { font-size: 11px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 1px; padding: 12px 16px 8px; }
+    .np-queue-item { display: flex; align-items: center; gap: 10px; padding: 8px 16px; cursor: pointer; border-radius: 4px; transition: background .12s; }
     .np-queue-item:hover { background: rgba(255,255,255,.06); }
     .np-queue-item.current { background: rgba(29,185,84,.1); }
-    .np-q-thumb {
-      width: 36px; height: 36px; border-radius: 4px; flex-shrink: 0;
-      overflow: hidden; display: flex; align-items: center; justify-content: center;
-    }
+    .np-q-thumb { width: 36px; height: 36px; border-radius: 4px; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; }
     .np-q-thumb img { width:100%; height:100%; object-fit:cover; }
-    .np-q-name {
-      font-size: 13px; font-weight: 500; color: var(--text-2);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;
-    }
+    .np-q-name { font-size: 13px; font-weight: 500; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
     .np-queue-item.current .np-q-name { color: var(--green); }
     .np-q-dur { font-size: 11px; color: var(--text-3); font-family: 'Space Mono', monospace; flex-shrink: 0; }
   `;
   document.head.appendChild(style);
 
-  // DOM
   const sidebar = document.createElement('div');
   sidebar.id = 'npSidebar';
   sidebar.innerHTML = `
@@ -192,7 +128,6 @@
   if (player) player.insertAdjacentElement('beforebegin', sidebar);
   else document.body.appendChild(sidebar);
 
-  // Toggle button di player bar
   const playerRight = document.querySelector('.player-right');
   if (playerRight) {
     const btn = document.createElement('button');
@@ -211,17 +146,6 @@
     if (btn) btn.classList.toggle('active', npOpen);
   }
 
-  // Tutup drawer mobile kalau klik overlay
-  document.addEventListener('click', (e) => {
-    if (npOpen && window.innerWidth <= 768) {
-      const sb = document.getElementById('npSidebar');
-      if (sb && !sb.contains(e.target) && e.target.id !== 'npToggleBtn') {
-        toggleNP();
-      }
-    }
-  });
-
-  // Slideshow
   let npPhotos = [], npIdx = 0, npTimer = null, npDur = 4000;
 
   function npGetPhotos(trackIdx) {
@@ -320,5 +244,5 @@
     }
   }, 500);
 
-  console.log('[Now Playing Sidebar v3] Loaded ✓');
+  console.log('[Now Playing Sidebar v4 — desktop only] Loaded ✓');
 })();
