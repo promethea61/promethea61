@@ -10,12 +10,15 @@
 
   const style = document.createElement('style');
   style.textContent = `
-    body {
-      grid-template-columns: var(--sidebar) 1fr var(--np-width, 0px) !important;
-      grid-template-areas: "sidebar main np" "player player player" !important;
-      transition: grid-template-columns 0.35s cubic-bezier(0.23,1,0.32,1);
+    /* DESKTOP ONLY — mobile tidak pakai sidebar */
+    @media(min-width:769px) {
+      body {
+        grid-template-columns: var(--sidebar) 1fr var(--np-width, 0px) !important;
+        grid-template-areas: "sidebar main np" "player player player" !important;
+        transition: grid-template-columns 0.35s cubic-bezier(0.23,1,0.32,1);
+      }
+      body.np-open { --np-width: 280px; }
     }
-    body.np-open { --np-width: 280px; }
 
     #npSidebar {
       grid-area: np;
@@ -29,7 +32,34 @@
       transition: width 0.35s cubic-bezier(0.23,1,0.32,1), opacity 0.35s ease;
       z-index: 10;
     }
-    body.np-open #npSidebar { width: 280px; opacity: 1; }
+
+    @media(min-width:769px) {
+      body.np-open #npSidebar { width: 280px; opacity: 1; }
+    }
+
+    /* MOBILE: sidebar jadi drawer dari kanan, overlay */
+    @media(max-width:768px) {
+      #npSidebar {
+        position: fixed !important;
+        top: 60px; right: 0;
+        bottom: 90px;
+        width: 0 !important;
+        z-index: 50;
+        transition: width 0.35s cubic-bezier(0.23,1,0.32,1), opacity 0.35s ease;
+      }
+      body.np-open #npSidebar {
+        width: 280px !important;
+        opacity: 1;
+      }
+      /* Overlay gelap di belakang drawer */
+      body.np-open::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.5);
+        z-index: 49;
+      }
+    }
 
     #npToggleBtn {
       background: none; border: none; color: var(--text-2);
@@ -40,7 +70,7 @@
     #npToggleBtn:hover { color: var(--text); }
     #npToggleBtn.active { color: var(--green); }
 
-    /* ── Cover foto — tinggi besar ── */
+    /* Cover foto */
     #npCoverWrap {
       position: relative;
       width: 100%;
@@ -57,8 +87,6 @@
       transition: opacity 0.6s ease;
     }
     .np-cover-img.active { opacity: 1; }
-
-    /* Gradient bawah */
     #npCoverWrap::after {
       content: '';
       position: absolute;
@@ -69,7 +97,6 @@
       z-index: 2;
     }
 
-    /* Progress bars tipis di atas */
     #npProgressBars {
       position: absolute;
       top: 0; left: 0; right: 0;
@@ -77,98 +104,59 @@
       padding: 10px 10px 0;
       z-index: 3;
     }
-    .np-pb {
-      flex: 1; height: 2px;
-      background: rgba(255,255,255,.2);
-      border-radius: 1px; overflow: hidden;
-    }
+    .np-pb { flex: 1; height: 2px; background: rgba(255,255,255,.2); border-radius: 1px; overflow: hidden; }
     .np-pb-fill { height: 100%; background: #fff; border-radius: 1px; width: 0%; }
     .np-pb.done .np-pb-fill { width: 100%; }
-    .np-pb.active .np-pb-fill {
-      animation: npBarAnim var(--np-dur, 4s) linear forwards;
-    }
+    .np-pb.active .np-pb-fill { animation: npBarAnim var(--np-dur, 4s) linear forwards; }
     @keyframes npBarAnim { from{width:0%} to{width:100%} }
 
-    /* Counter kanan atas */
     #npCounter {
-      position: absolute;
-      top: 10px; right: 10px;
-      background: rgba(0,0,0,.55);
-      backdrop-filter: blur(6px);
-      border-radius: 20px;
-      padding: 2px 8px;
-      font-size: 10px; font-weight: 700;
-      color: rgba(255,255,255,.7);
-      z-index: 3;
-      font-family: 'Space Mono', monospace;
-      letter-spacing: .5px;
+      position: absolute; top: 10px; right: 10px;
+      background: rgba(0,0,0,.55); backdrop-filter: blur(6px);
+      border-radius: 20px; padding: 2px 8px;
+      font-size: 10px; font-weight: 700; color: rgba(255,255,255,.7);
+      z-index: 3; font-family: 'Space Mono', monospace; letter-spacing: .5px;
     }
 
-    /* Dots */
     #npDots {
-      position: absolute;
-      bottom: 48px; left: 50%;
-      transform: translateX(-50%);
-      display: flex; gap: 5px;
-      z-index: 3;
-      flex-wrap: wrap;
-      max-width: 240px;
-      justify-content: center;
+      position: absolute; bottom: 48px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 5px; z-index: 3;
+      flex-wrap: wrap; max-width: 240px; justify-content: center;
     }
-    .np-dot {
-      width: 5px; height: 5px;
-      border-radius: 50%;
-      background: rgba(255,255,255,.3);
-      transition: all .3s; flex-shrink: 0;
-    }
+    .np-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,.3); transition: all .3s; flex-shrink: 0; }
     .np-dot.on { background: #fff; transform: scale(1.35); }
 
-    /* Info lagu — di atas queue */
     #npInfo {
-      padding: 14px 16px 10px;
-      flex-shrink: 0;
+      padding: 14px 16px 10px; flex-shrink: 0;
       border-bottom: 1px solid #1a1a1a;
     }
     #npSongName {
-      font-size: 16px; font-weight: 700; color: #fff;
-      margin-bottom: 4px;
+      font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 4px;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    #npAlbumName {
-      font-size: 13px; color: var(--text-2);
-      display: flex; align-items: center; gap: 6px;
-    }
+    #npAlbumName { font-size: 13px; color: var(--text-2); display: flex; align-items: center; gap: 6px; }
     .np-green-dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: var(--green);
+      width: 7px; height: 7px; border-radius: 50%; background: var(--green);
       animation: npPulse 1.8s ease-in-out infinite; flex-shrink: 0;
     }
     @keyframes npPulse { 0%,100%{opacity:1}50%{opacity:.35} }
 
-    /* Queue */
-    #npQueue {
-      flex: 1; overflow-y: auto; padding-bottom: 16px;
-    }
+    #npQueue { flex: 1; overflow-y: auto; padding-bottom: 16px; }
     #npQueue::-webkit-scrollbar { width: 3px; }
     #npQueue::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
     .np-queue-label {
-      font-size: 11px; font-weight: 700;
-      color: var(--text-3);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      padding: 12px 16px 8px;
+      font-size: 11px; font-weight: 700; color: var(--text-3);
+      text-transform: uppercase; letter-spacing: 1px; padding: 12px 16px 8px;
     }
     .np-queue-item {
       display: flex; align-items: center; gap: 10px;
-      padding: 8px 16px; cursor: pointer;
-      border-radius: 4px; transition: background .12s;
+      padding: 8px 16px; cursor: pointer; border-radius: 4px; transition: background .12s;
     }
     .np-queue-item:hover { background: rgba(255,255,255,.06); }
     .np-queue-item.current { background: rgba(29,185,84,.1); }
     .np-q-thumb {
-      width: 36px; height: 36px; border-radius: 4px;
-      flex-shrink: 0; overflow: hidden;
-      display: flex; align-items: center; justify-content: center;
+      width: 36px; height: 36px; border-radius: 4px; flex-shrink: 0;
+      overflow: hidden; display: flex; align-items: center; justify-content: center;
     }
     .np-q-thumb img { width:100%; height:100%; object-fit:cover; }
     .np-q-name {
@@ -176,25 +164,11 @@
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;
     }
     .np-queue-item.current .np-q-name { color: var(--green); }
-    .np-q-dur {
-      font-size: 11px; color: var(--text-3);
-      font-family: 'Space Mono', monospace; flex-shrink: 0;
-    }
-
-    @media(max-width:768px) {
-      body.np-open { --np-width: 0px !important; }
-      #npSidebar {
-        position: fixed !important;
-        top: 60px; right: 0;
-        bottom: var(--player);
-        width: 0 !important; z-index: 15;
-      }
-      body.np-open #npSidebar { width: 280px !important; opacity: 1; }
-    }
+    .np-q-dur { font-size: 11px; color: var(--text-3); font-family: 'Space Mono', monospace; flex-shrink: 0; }
   `;
   document.head.appendChild(style);
 
-  // ── DOM ───────────────────────────────────────────────────
+  // DOM
   const sidebar = document.createElement('div');
   sidebar.id = 'npSidebar';
   sidebar.innerHTML = `
@@ -237,7 +211,17 @@
     if (btn) btn.classList.toggle('active', npOpen);
   }
 
-  // ── Slideshow ─────────────────────────────────────────────
+  // Tutup drawer mobile kalau klik overlay
+  document.addEventListener('click', (e) => {
+    if (npOpen && window.innerWidth <= 768) {
+      const sb = document.getElementById('npSidebar');
+      if (sb && !sb.contains(e.target) && e.target.id !== 'npToggleBtn') {
+        toggleNP();
+      }
+    }
+  });
+
+  // Slideshow
   let npPhotos = [], npIdx = 0, npTimer = null, npDur = 4000;
 
   function npGetPhotos(trackIdx) {
@@ -294,7 +278,6 @@
     npShowPhoto(0);
   }
 
-  // ── Queue ─────────────────────────────────────────────────
   function renderQueue(currentIdx) {
     const list = document.getElementById('npQueueList');
     if (!list || typeof tracks === 'undefined') return;
@@ -312,7 +295,6 @@
     }, 100);
   }
 
-  // ── Hook playTrack ────────────────────────────────────────
   const _orig = window.playTrack;
   window.playTrack = function (idx) {
     _orig(idx);
@@ -326,7 +308,6 @@
     if (!npOpen) toggleNP();
   };
 
-  // ── Init ──────────────────────────────────────────────────
   setTimeout(() => {
     if (typeof cur !== 'undefined' && cur >= 0 && typeof tracks !== 'undefined') {
       const t = tracks[cur];
@@ -339,5 +320,5 @@
     }
   }, 500);
 
-  console.log('[Now Playing Sidebar v2] Loaded ✓');
+  console.log('[Now Playing Sidebar v3] Loaded ✓');
 })();
