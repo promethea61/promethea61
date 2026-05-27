@@ -1,10 +1,10 @@
 const memories = [
   {
     title: "PROMETHEA BIG DAY",
-    sub: "14 Maret 2026",
+    sub: "29 Maret 2026",
     emoji: "",
     g: "g1",
-    hashtags: ["Nightparty", "#2026"],
+    hashtags: ["PROMETHEA's PARTY🥳", "#2026"],
     imgs: [
       "https://res.cloudinary.com/dm9qunbji/image/upload/q_auto/f_auto/v1779603746/DSC00639_apdjjg.jpg",
       "https://res.cloudinary.com/dm9qunbji/image/upload/v1779604012/DSC00007_hkhnqy.jpg",
@@ -81,10 +81,10 @@ const memories = [
   
    {
      title: "BEHIND THE SCENE",
-     sub: "Agustus 2021",
+     sub: "14 Maret 2026",
      emoji: "",
      g: "g2",
-     hashtags: ["#ospek", "#promethea", "#2021"],
+     hashtags: ["Di balik layar pembuatan video angkatan kita nih gengs", "#BTS"],
      imgs: [
        "https://res.cloudinary.com/dm9qunbji/image/upload/v1779689873/DSC02758_w818iu.jpg",
         "IMG_1255.mp4",
